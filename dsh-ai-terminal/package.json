@@ -2,6 +2,7 @@
   "name": "@local/dsh-ai-terminal",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "description": "AI Terminal \u2014 native MOEX trading terminal with an in-process AI agent, embedded as a DSH main panel",
   "type": "module",
   "repository": {
