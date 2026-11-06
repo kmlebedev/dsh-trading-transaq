@@ -3,15 +3,16 @@
 Встраивает нативный AI-терминал (MOEX/TRANSAQ, `cmd/terminal`) в интерфейс
 DeepSeek Harness как **основную панель** с иконкой в левой панели Harness.
 
-![AI Terminal](../docs/ai-terminal/screenshot-main.png)
+![AI Terminal](../docs/screenshot-main.png)
 
 ## Что делает
 
 - добавляет в sidebar Harness иконку **AI-терминал**; клик открывает main panel
   с полноценным терминалом (график, стакан, портфель, заявки, AI-агент,
   автономные стратегии);
-- Host-половина плагина запускает Go-бэкенд терминала (по умолчанию
-  `bin/terminal` этого checkout'а, при отсутствии — собирает `go build`),
+- Host-половина плагина запускает Go-бэкенд терминала из checkout'а
+  [`kmlebedev/txmlconnector`](https://github.com/kmlebedev/txmlconnector) (готовый
+  `bin/terminal` или `go build ./cmd/terminal`),
   ждёт `/api/health` и **проксирует** SPA и API под тем же origin, что и
   Harness: `/ai-terminal/` (REST + SSE, без CORS и второго порта в браузере);
 - генерирует на каждый запуск UUID-токен API и nonce `instanceId`, передаёт их бэкенду в env
@@ -26,18 +27,30 @@ DeepSeek Harness как **основную панель** с иконкой в �
 
 - профиль DSH с Web UI (плагин использует Client slots `main` и
   `sidebar.panellist`);
+- checkout Go-бэкенда [`kmlebedev/txmlconnector`](https://github.com/kmlebedev/txmlconnector):
+  рядом с этим репозиторием, либо через `repoDir`/`binaryPath` в строке профиля, либо через
+  env `DSH_AI_TERMINAL_REPO_DIR`;
 - Go 1.27+ (если `bin/terminal` отсутствует и его нужно собрать) или заранее
-  собранный `bin/terminal` (`make terminal`).
+  собранный `bin/terminal` (`make terminal` в checkout'е txmlconnector).
 
 ## Установка
 
-Плагин ставится как локальный bundle:
+Плагин ставится как локальный bundle; Go-бэкенд — отдельный checkout
+[`kmlebedev/txmlconnector`](https://github.com/kmlebedev/txmlconnector) (`cmd/terminal`,
+пакеты `terminal/` и `native/`):
 
 ```bash
-# из корня checkout'а txmlconnector
-make terminal                      # bin/terminal
-# затем в DSH-сессии: plugin_manager install_bundle с target = <repo>/dsh-ai-terminal
+git clone https://github.com/kmlebedev/dsh-trading-transaq.git
+git clone https://github.com/kmlebedev/txmlconnector.git       # Go-бэкенд
+make -C txmlconnector terminal                                 # bin/terminal
+
+# далее в DSH-сессии: plugin_manager install_bundle
+#   target = <путь>/dsh-trading-transaq/dsh-ai-terminal
 ```
+
+Если оба checkout'а лежат рядом (`<parent>/dsh-trading-transaq` и `<parent>/txmlconnector`),
+плагин найдёт бэкенд сам (walk-up/соседний checkout). Иначе укажите `repoDir` в строке профиля
+или env `DSH_AI_TERMINAL_REPO_DIR=<путь>/txmlconnector` (см. «Конфигурация»).
 
 Или вручную в профиль (не рекомендуется — используйте plugin_manager):
 
@@ -55,7 +68,7 @@ make terminal                      # bin/terminal
 | `mode` | `offline` | `offline` — встроенный снапшот демо-данных; `live` — живой read-only TRANSAQ (нужны env `TRANSAQ_*`/`TC_*` в окружении запуска Harness; плагин передаёт их бэкенду явно, см. «Ограничения и безопасность»); `auto` |
 | `port` | `18090` | loopback-порт Go-бэкенда; наружу не публикуется |
 | `autoStart` | `true` | запускать бэкенд при загрузке плагина |
-| `repoDir` | авто | checkout с `cmd/terminal` (по умолчанию — родитель каталога плагина) |
+| `repoDir` | авто | checkout с `cmd/terminal`: сначала `repoDir`, затем env `DSH_AI_TERMINAL_REPO_DIR`, walk-up от пакета, затем соседний `../txmlconnector` (fallback — родитель каталога плагина) |
 | `binaryPath` | авто | заранее собранный бэкенд; по умолчанию `<repoDir>/bin/terminal` |
 | `llmProvider` | `deepseek-official` | provider Harness LLM для агента терминала (мост задачи 10) |
 | `llmModel` | `deepseek-flash` | модель Harness LLM для агента терминала; `request.model` бэкенда игнорируется |
@@ -140,7 +153,7 @@ Host-реле связывает роботов терминала с DSH-сес
   через env `TERMINAL_API_TOKEN` и сам подставляет в проксируемые запросы заголовок
   `X-Terminal-Token`. Прямой доступ к бэкенду получает токен в cookie `terminal_token`
   (`HttpOnly; SameSite=Strict; Path=/`) при отдаче `index.html`. Подробно —
-  [ARCHITECTURE §10.4](../docs/ai-terminal/ARCHITECTURE.md#104-безопасность).
+  [ARCHITECTURE §10.4](https://github.com/kmlebedev/txmlconnector/blob/main/docs/ai-terminal/ARCHITECTURE.md#104-безопасность).
 - **Прокси не выпускает креды Harness наружу.** Из проксируемых запросов вычищаются `cookie`,
   `authorization` и все `x-dsh-*`; `Set-Cookie` бэкенда не отдаётся браузеру, чтобы
   token-cookie не утекала в cookie jar Harness. Исходный `Host` сохраняется, поэтому проверка
@@ -177,7 +190,7 @@ Host-реле связывает роботов терминала с DSH-сес
   (бэкенд перезапущен, health восстановился).
 - Терминал, загруженный через плагин, проверен в реальном браузере (CDP):
   11 инструментов, `ДЕМО/онлайн`, график и SSE-котировки —
-  [скриншот](../docs/ai-terminal/screenshot-dsh-embedded.png).
+  [скриншот](../docs/screenshot-dsh-embedded.png).
 - Client-половина: слоты `sidebar.panellist` и `main` содержат активную запись
   `ai-terminal` (проверено `cordis_inspect_query`); установлены locale en/ru/zh
   и иконка.
@@ -205,7 +218,10 @@ Host-реле связывает роботов терминала с DSH-сес
 ## Dev-проверка Host-половины
 
 ```bash
+# в checkout'е txmlconnector:
 make terminal
+
+# в этом репозитории:
 node --test dsh-ai-terminal/test/           # юнит-тесты Host-половины, без Go-бэкенда
 node dsh-ai-terminal/test/proxy-smoke.mjs   # smoke с реальным Go-бэкендом (порты 18097/18098)
 ```

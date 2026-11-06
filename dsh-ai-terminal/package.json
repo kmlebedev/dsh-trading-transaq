@@ -4,6 +4,15 @@
   "private": true,
   "description": "AI Terminal \u2014 native MOEX trading terminal with an in-process AI agent, embedded as a DSH main panel",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kmlebedev/dsh-trading-transaq.git",
+    "directory": "dsh-ai-terminal"
+  },
+  "homepage": "https://github.com/kmlebedev/dsh-trading-transaq/tree/main/dsh-ai-terminal#readme",
+  "engines": {
+    "node": ">=24"
+  },
   "exports": {
     ".": "./index.js",
     "./client": "./client.js",

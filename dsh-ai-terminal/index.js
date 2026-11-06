@@ -17,7 +17,8 @@
 //   mode:       "offline" | "live" | "auto"   (default "offline")
 //   port:       local backend port            (default 18090)
 //   autoStart:  start the backend on load     (default true)
-//   repoDir:    checkout containing cmd/terminal (default: this package's parent)
+//   repoDir:    checkout containing cmd/terminal (default: DSH_AI_TERMINAL_REPO_DIR,
+//               a checkout found by walking up, or a sibling ../txmlconnector)
 //   binaryPath: prebuilt backend binary       (default: <repoDir>/bin/terminal)
 
 import { randomUUID } from 'node:crypto';
@@ -154,18 +155,44 @@ function pluginDir() {
   }
 }
 
-/** Locate the checkout that contains cmd/terminal, walking up from the plugin. */
-function findRepoDir(configured) {
-  const hasTerminal = (dir) => fs.existsSync(path.join(dir, 'cmd', 'terminal', 'main.go'));
-  if (configured) return configured;
-  let dir = pluginDir();
+/**
+ * Environment override for the checkout that contains cmd/terminal. After the
+ * 2026-11-06 repository split the Go backend lives in kmlebedev/txmlconnector,
+ * so the plugin can be pointed at that checkout without a profile config.
+ */
+export const REPO_DIR_ENV = 'DSH_AI_TERMINAL_REPO_DIR';
+
+/** True when dir is a checkout of the Go terminal backend. */
+function hasTerminalCheckout(dir) {
+  return fs.existsSync(path.join(dir, 'cmd', 'terminal', 'main.go'));
+}
+
+/**
+ * Resolve the backend checkout deterministically, without touching the process
+ * cwd: explicit config -> env override -> a checkout found by walking up from
+ * the plugin package (the pre-split monorepo layout) -> a sibling txmlconnector
+ * checkout of the plugin repository (the split layout). The fallback keeps the
+ * historical "parent of the plugin package" expectation.
+ */
+export function resolveRepoDir({ configured = '', envDir = '', pluginRoot = pluginDir() } = {}) {
+  const root = path.resolve(pluginRoot);
+  if (configured) return path.resolve(configured);
+  if (envDir) return path.resolve(envDir);
+  let dir = root;
   for (let depth = 0; depth < 6; depth += 1) {
-    if (hasTerminal(dir)) return dir;
+    if (hasTerminalCheckout(dir)) return dir;
     const parent = path.dirname(dir);
     if (parent === dir) break;
     dir = parent;
   }
-  return path.dirname(pluginDir());
+  const sibling = path.resolve(root, '..', '..', 'txmlconnector');
+  if (hasTerminalCheckout(sibling)) return sibling;
+  return path.dirname(root);
+}
+
+/** Locate the checkout that contains cmd/terminal for the running plugin. */
+function findRepoDir(configured) {
+  return resolveRepoDir({ configured, envDir: process.env[REPO_DIR_ENV] || '' });
 }
 
 function json(res, status, body) {
