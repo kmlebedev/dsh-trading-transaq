@@ -13,8 +13,10 @@
   содержимое есть в коммитах файлов;
 - два скриншота из `docs/ai-terminal/` (их использует README плагина).
 
-Поверх истории добавлены коммиты этого репозитория: scaffolding и split-support (поиск checkout'а
-бэкенда, `repoDir`/`DSH_AI_TERMINAL_REPO_DIR`, тесты).
+Поверх истории добавлены три коммита этого репозитория: scaffolding, split-support (поиск
+checkout'а бэкенда, `repoDir`/`DSH_AI_TERMINAL_REPO_DIR`, тесты) и `fix(ci)` — тесты запускаются
+по явному glob `dsh-ai-terminal/test/*.test.mjs`, потому что Node 24 не разворачивает каталог в
+`node --test`.
 
 ## Что осталось в txmlconnector
 
