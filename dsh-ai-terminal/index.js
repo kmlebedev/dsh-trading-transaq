@@ -167,17 +167,28 @@ function hasTerminalCheckout(dir) {
   return fs.existsSync(path.join(dir, 'cmd', 'terminal', 'main.go'));
 }
 
+/** Actionable hint for a missing backend checkout. */
+const REPO_DIR_HINT = 'укажите repoDir в строке ai-terminal, env DSH_AI_TERMINAL_REPO_DIR '
+  + 'или положите checkout txmlconnector рядом с этим репозиторием';
+
+/** Validate a checkout and return it, or throw with an actionable message. */
+function requireTerminalCheckout(dir, source) {
+  if (hasTerminalCheckout(dir)) return dir;
+  throw new Error(`checkout txmlconnector не найден (${source}: ${dir}); ${REPO_DIR_HINT}`);
+}
+
 /**
  * Resolve the backend checkout deterministically, without touching the process
  * cwd: explicit config -> env override -> a checkout found by walking up from
  * the plugin package (the pre-split monorepo layout) -> a sibling txmlconnector
- * checkout of the plugin repository (the split layout). The fallback keeps the
- * historical "parent of the plugin package" expectation.
+ * checkout of the plugin repository (the split layout). Explicit paths are
+ * validated eagerly and an unresolvable checkout throws, instead of silently
+ * returning a directory that has no cmd/terminal.
  */
 export function resolveRepoDir({ configured = '', envDir = '', pluginRoot = pluginDir() } = {}) {
   const root = path.resolve(pluginRoot);
-  if (configured) return path.resolve(configured);
-  if (envDir) return path.resolve(envDir);
+  if (configured) return requireTerminalCheckout(path.resolve(configured), 'repoDir');
+  if (envDir) return requireTerminalCheckout(path.resolve(envDir), REPO_DIR_ENV);
   let dir = root;
   for (let depth = 0; depth < 6; depth += 1) {
     if (hasTerminalCheckout(dir)) return dir;
@@ -187,7 +198,7 @@ export function resolveRepoDir({ configured = '', envDir = '', pluginRoot = plug
   }
   const sibling = path.resolve(root, '..', '..', 'txmlconnector');
   if (hasTerminalCheckout(sibling)) return sibling;
-  return path.dirname(root);
+  throw new Error(`checkout txmlconnector не найден рядом с ${root}; ${REPO_DIR_HINT}`);
 }
 
 /** Locate the checkout that contains cmd/terminal for the running plugin. */
@@ -554,13 +565,23 @@ export function apply(ctx, config) {
   }
 
   // Skill provider: the repository skills/trading-* tree (same frontmatter as
-  // "npx skills add") plus the generated patterns under <dataDir>/skills.
-  const repoDir = findRepoDir(cfg.repoDir);
+  // "npx skills add") plus the generated patterns under <dataDir>/skills. A
+  // missing backend checkout must not abort the plugin activation (the panel
+  // reports the backend error itself), so it only disables the repository root.
+  let repoDir = '';
+  try {
+    repoDir = findRepoDir(cfg.repoDir);
+  } catch (error) {
+    console.warn('[ai-terminal] ' + (error instanceof Error ? error.message : String(error)));
+  }
   const skillsService = typeof ctx.get === 'function' ? ctx.get('skills') : ctx.skills;
   if (skillsService && typeof skillsService.registerProvider === 'function') {
-    const roots = [path.join(repoDir, 'skills')];
+    const roots = [];
+    if (repoDir !== '') roots.push(path.join(repoDir, 'skills'));
     if (cfg.dataDir !== '') roots.push(path.join(cfg.dataDir, 'skills'));
-    own(ctx.effect(() => skillsService.registerProvider(() => createSkillProvider({ roots })), 'ai-terminal: skill provider'));
+    if (roots.length > 0) {
+      own(ctx.effect(() => skillsService.registerProvider(() => createSkillProvider({ roots })), 'ai-terminal: skill provider'));
+    }
   }
 
   // --- Autonomous nightly research (plan Task 21) -----------------------
