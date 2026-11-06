@@ -65,4 +65,4 @@ make smoke     # proxy-smoke с реальным bin/terminal (нужен checko
 
 ## Лицензия
 
-LICENSE пока не добавлен — решение владельца репозитория (см. [docs/migration.md](docs/migration.md)).
+[MIT](LICENSE) © 2026 kmlebedev.

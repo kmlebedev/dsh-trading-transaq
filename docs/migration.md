@@ -32,7 +32,7 @@ Go-бэкенд (`cmd/terminal`, `terminal/`, `native/`), переносимые
 - Имя пакета `@local/dsh-ai-terminal` и row id `ai-terminal` не менялись — профили DSH и
   пользовательские конфиги остаются совместимыми.
 - Cutover профиля `~/.dsh` на новый checkout — отдельный шаг владельца (нужен рестарт DSH).
-- LICENSE не добавлен — решение владельца репозитория.
+- LICENSE — MIT (решение владельца, 2026-11-06).
 - Cutover профиля DSH и откат описаны в [docs/cutover.md](cutover.md).
 
 ## Проверки
