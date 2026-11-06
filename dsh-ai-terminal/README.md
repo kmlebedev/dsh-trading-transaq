@@ -222,6 +222,6 @@ Host-реле связывает роботов терминала с DSH-сес
 make terminal
 
 # в этом репозитории:
-node --test dsh-ai-terminal/test/           # юнит-тесты Host-половины, без Go-бэкенда
+node --test dsh-ai-terminal/test/*.test.mjs # юнит-тесты Host-половины, без Go-бэкенда
 node dsh-ai-terminal/test/proxy-smoke.mjs   # smoke с реальным Go-бэкендом (порты 18097/18098)
 ```

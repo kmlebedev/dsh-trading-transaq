@@ -16,7 +16,7 @@
 ## Проверки перед коммитом
 
 ```bash
-node --test dsh-ai-terminal/test/                       # обязательно, без Go и сети
+node --test dsh-ai-terminal/test/*.test.mjs             # обязательно, без Go и сети
 git grep -nE 'TC_PASSWORD|TC_LOGIN' -- ':!*.md'         # секретов быть не должно
 ```
 
