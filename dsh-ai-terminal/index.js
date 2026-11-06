@@ -331,7 +331,16 @@ class TerminalBackend {
     const subprocess = this.ctx.get('subprocess');
     if (!subprocess) throw new Error('сервис subprocess недоступен');
     const binary = await this.resolveBinary();
-    const repo = findRepoDir(this.cfg.repoDir);
+    // The cwd only matters for a backend that resolves relative paths: when an
+    // explicit binaryPath is configured the checkout is optional, so fall back
+    // to the binary directory instead of failing the plugin activation.
+    let repo;
+    try {
+      repo = findRepoDir(this.cfg.repoDir);
+    } catch (error) {
+      if (!this.cfg.binaryPath) throw error;
+      repo = path.dirname(binary);
+    }
     this.set('starting', 'запуск Go-бэкенда…');
     const handle = subprocess.spawn({
       argv: [binary, '-mode', this.cfg.mode, '-addr', `127.0.0.1:${this.cfg.port}`],
