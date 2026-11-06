@@ -1,0 +1,14 @@
+# dependencies and build output
+node_modules/
+.cache/
+
+# local logs and secrets
+*.log
+*.env
+
+# IDE / OS
+.DS_Store
+.idea/
+
+# agent worktrees (DSH create_worktree pool)
+.worktrees/
