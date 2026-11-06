@@ -16,7 +16,9 @@
 Поверх истории добавлены собственные коммиты: scaffolding, split-support (поиск checkout'а
 бэкенда, `repoDir`/`DSH_AI_TERMINAL_REPO_DIR`, валидация явных путей, тесты), `fix(ci)` (тесты
 запускаются по явному glob `dsh-ai-terminal/test/*.test.mjs` — Node 24 не разворачивает каталог в
-`node --test`) и правки по независимому ревью (P1/P2). Копия плана миграции —
+`node --test`), правки по независимому ревью (P1/P2), MIT-лицензия и порт PR #66
+(`kmlebedev/txmlconnector` `6c15bbb`, merge `136e8ca`) — плагин синхронизирован с финальным
+состоянием в txmlconnector `main`. Копия плана миграции —
 [docs/plans/2026-11-06-dsh-ai-terminal-repo-migration.md](plans/2026-11-06-dsh-ai-terminal-repo-migration.md).
 
 ## Что осталось в txmlconnector
@@ -31,14 +33,15 @@ Go-бэкенд (`cmd/terminal`, `terminal/`, `native/`), переносимые
   будущие пакеты (например, `dshtrading-connector-transaq`).
 - Имя пакета `@local/dsh-ai-terminal` и row id `ai-terminal` не менялись — профили DSH и
   пользовательские конфиги остаются совместимыми.
-- Cutover профиля `~/.dsh` на новый checkout — отдельный шаг владельца (нужен рестарт DSH).
+- Cutover профиля `~/.dsh` на этот checkout **выполнен 2026-11-06**: `link` указывает на
+  `~/GolandProjects/dsh-trading-transaq/dsh-ai-terminal`, `repoDir` — на checkout txmlconnector;
+  для применения нужен рестарт DSH. Шаги и откат — [docs/cutover.md](cutover.md).
 - LICENSE — MIT (решение владельца, 2026-11-06).
-- Cutover профиля DSH и откат описаны в [docs/cutover.md](cutover.md).
 
 ## Проверки
 
 - до переноса на `dd38d93`: `node --test dsh-ai-terminal/test/` — 54/54 pass (Node v26.12.0);
-- после переноса: `node --test dsh-ai-terminal/test/*.test.mjs` — 62/62 зелёные (54 исходных
-  + 8 тестов `test/repo-dir.test.mjs`), Go/Wine не нужны;
+- после переноса: `node --test dsh-ai-terminal/test/*.test.mjs` — 66/66 зелёные (54 исходных
+  + 8 тестов `test/repo-dir.test.mjs` + 4 теста, портированных из PR #66), Go/Wine не нужны;
 - история: `git log --oneline` — 16 исторических коммитов, каждый содержит только пути
   `dsh-ai-terminal/`.
