@@ -38,7 +38,7 @@ Go-бэкенд (`cmd/terminal`, `terminal/`, `native/`), переносимые
 ## Проверки
 
 - до переноса на `dd38d93`: `node --test dsh-ai-terminal/test/` — 54/54 pass (Node v26.12.0);
-- после переноса: `node --test dsh-ai-terminal/test/*.test.mjs` — 60/60 зелёные (54 исходных
-  + `test/repo-dir.test.mjs`), Go/Wine не нужны;
+- после переноса: `node --test dsh-ai-terminal/test/*.test.mjs` — 62/62 зелёные (54 исходных
+  + 8 тестов `test/repo-dir.test.mjs`), Go/Wine не нужны;
 - история: `git log --oneline` — 16 исторических коммитов, каждый содержит только пути
   `dsh-ai-terminal/`.
