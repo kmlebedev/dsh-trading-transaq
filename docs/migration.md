@@ -13,10 +13,11 @@
   содержимое есть в коммитах файлов;
 - два скриншота из `docs/ai-terminal/` (их использует README плагина).
 
-Поверх истории добавлены три коммита этого репозитория: scaffolding, split-support (поиск
-checkout'а бэкенда, `repoDir`/`DSH_AI_TERMINAL_REPO_DIR`, тесты) и `fix(ci)` — тесты запускаются
-по явному glob `dsh-ai-terminal/test/*.test.mjs`, потому что Node 24 не разворачивает каталог в
-`node --test`.
+Поверх истории добавлены собственные коммиты: scaffolding, split-support (поиск checkout'а
+бэкенда, `repoDir`/`DSH_AI_TERMINAL_REPO_DIR`, валидация явных путей, тесты), `fix(ci)` (тесты
+запускаются по явному glob `dsh-ai-terminal/test/*.test.mjs` — Node 24 не разворачивает каталог в
+`node --test`) и правки по независимому ревью (P1/P2). Копия плана миграции —
+[docs/plans/2026-11-06-dsh-ai-terminal-repo-migration.md](plans/2026-11-06-dsh-ai-terminal-repo-migration.md).
 
 ## Что осталось в txmlconnector
 
@@ -32,6 +33,7 @@ Go-бэкенд (`cmd/terminal`, `terminal/`, `native/`), переносимые
   пользовательские конфиги остаются совместимыми.
 - Cutover профиля `~/.dsh` на новый checkout — отдельный шаг владельца (нужен рестарт DSH).
 - LICENSE не добавлен — решение владельца репозитория.
+- Cutover профиля DSH и откат описаны в [docs/cutover.md](cutover.md).
 
 ## Проверки
 

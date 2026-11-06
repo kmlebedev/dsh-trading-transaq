@@ -49,8 +49,9 @@ make -C txmlconnector terminal                                 # bin/terminal
 ```
 
 Если оба checkout'а лежат рядом (`<parent>/dsh-trading-transaq` и `<parent>/txmlconnector`),
-плагин найдёт бэкенд сам (walk-up/соседний checkout). Иначе укажите `repoDir` в строке профиля
-или env `DSH_AI_TERMINAL_REPO_DIR=<путь>/txmlconnector` (см. «Конфигурация»).
+плагин найдёт бэкенд сам (walk-up/соседний checkout). Иначе укажите `repoDir` (абсолютный путь) в
+строке профиля или env `DSH_AI_TERMINAL_REPO_DIR=<путь>/txmlconnector` (см. «Конфигурация»).
+Порядок переключения профиля, smoke и откат — [docs/cutover.md](../docs/cutover.md).
 
 Или вручную в профиль (не рекомендуется — используйте plugin_manager):
 
@@ -68,7 +69,7 @@ make -C txmlconnector terminal                                 # bin/terminal
 | `mode` | `offline` | `offline` — встроенный снапшот демо-данных; `live` — живой read-only TRANSAQ (нужны env `TRANSAQ_*`/`TC_*` в окружении запуска Harness; плагин передаёт их бэкенду явно, см. «Ограничения и безопасность»); `auto` |
 | `port` | `18090` | loopback-порт Go-бэкенда; наружу не публикуется |
 | `autoStart` | `true` | запускать бэкенд при загрузке плагина |
-| `repoDir` | авто | checkout с `cmd/terminal`: сначала `repoDir`, затем env `DSH_AI_TERMINAL_REPO_DIR`, walk-up от пакета, затем соседний `../txmlconnector` (fallback — родитель каталога плагина) |
+| `repoDir` | авто | checkout с `cmd/terminal`: сначала `repoDir` (только абсолютный путь, `~` не раскрывается), затем env `DSH_AI_TERMINAL_REPO_DIR`, walk-up от пакета, затем соседний `../txmlconnector`; если checkout не найден — понятная ошибка |
 | `binaryPath` | авто | заранее собранный бэкенд; по умолчанию `<repoDir>/bin/terminal` |
 | `llmProvider` | `deepseek-official` | provider Harness LLM для агента терминала (мост задачи 10) |
 | `llmModel` | `deepseek-flash` | модель Harness LLM для агента терминала; `request.model` бэкенда игнорируется |

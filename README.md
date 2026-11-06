@@ -36,14 +36,21 @@ make -C txmlconnector terminal                                  # txmlconnector/
 ```
 
 Если оба checkout'а лежат рядом, плагин найдёт бэкенд сам; иначе добавьте в строку профиля
-`config.repoDir: <путь>/txmlconnector` (пример ниже) или env `DSH_AI_TERMINAL_REPO_DIR`.
+`config.repoDir` (только абсолютный путь: YAML не раскрывает `~` и переменные окружения) или
+env `DSH_AI_TERMINAL_REPO_DIR`.
 
 ```yaml
 - insert:
     - id: ai-terminal
       name: '@local/dsh-ai-terminal'
-      config: { mode: offline, port: 18090, autoStart: true }
+      config:
+        mode: offline
+        port: 18090
+        autoStart: true
+        # repoDir: /absolute/path/to/txmlconnector   # если checkout не рядом
 ```
+
+Порядок переключения профиля на новый checkout, smoke и откат — [docs/cutover.md](docs/cutover.md).
 
 Подробности установки, конфигурации и безопасности — [README плагина](dsh-ai-terminal/README.md).
 Офлайн-режим работает без сети и ключей на встроенном снапшоте демо-данных; live — read-only

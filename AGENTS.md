@@ -17,7 +17,7 @@
 
 ```bash
 node --test dsh-ai-terminal/test/*.test.mjs             # обязательно, без Go и сети
-git grep -nE 'TC_PASSWORD|TC_LOGIN' -- ':!*.md'         # секретов быть не должно
+git grep -nE 'TC_(PASSWORD|LOGIN)[[:space:]]*=' -- ':!*.md'   # значений секретов быть не должно
 ```
 
 ## Жёсткие правила
