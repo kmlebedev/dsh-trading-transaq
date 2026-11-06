@@ -21,4 +21,4 @@ jobs:
           node-version: '24'
 
       - name: Run tests
-        run: node --test dsh-ai-terminal/test/
+        run: node --test dsh-ai-terminal/test/*.test.mjs
