@@ -58,3 +58,10 @@ test("package exports point at existing files", () => {
     assert.ok(fs.existsSync(path.join(root, file)), "export " + key + " -> " + file + " is missing");
   }
 });
+test("client half is declared with the plain platform-web manifest", () => {
+  // Desktop left the linked plugin's client entry loading until the manifest
+  // declared only {platform: "web"} like shipped third-party plugins
+  // (txmlconnector 5275df1, confirmed after a Desktop restart).
+  assert.deepEqual(pkg.dsh && pkg.dsh.client, { platform: "web" });
+  assert.equal(pkg.dsh.bundle && pkg.dsh.bundle.patch, "./cordis.patch.yml");
+});
